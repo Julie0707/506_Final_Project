@@ -2,7 +2,7 @@ library(pls)
 load("/Users/jiaqizhu/Downloads/Real.2.rda")
 dim(Real.2)
 
-S <- 100
+S <- 50
 Y <- as.matrix(Real.2$y)
 X <- as.matrix(Real.2[,-1])
 
@@ -15,7 +15,7 @@ rmse <- function(x, y){
 X <- scale(X)
 n <- nrow(X)
 p <- ncol(X)
-ncomp <- 10
+ncomp <- 8
 
 p_values <- seq(40, 2*p, by = 40)
 RMSE_train_result <- numeric(length(p_values))
@@ -42,36 +42,35 @@ for (j in seq_along(p_values)) {
     Z_test <- Z[-train, ]
     
     # Fit pls model
-    ncomp <- min((nrow(Z_train)-1),ncomp)
-    pls_model <- plsr(Y_train ~ Z_train,  ncomp = ncomp, validation = "CV")
-    pls_rmseCV <- RMSEP(pls_model,estimate="CV")
-    optimal_ncomp <- which.min(pls_rmseCV$val)
-    
+    Z_train_dim <- min(nrow(Z_train), ncol(Z_train)) -1 
+    ncomp_adj <- min(Z_train_dim, ncomp)
+    pls_model <- plsr(Y_train ~ Z_train,  ncomp = ncomp_adj)
+    # Making predictions on the training data
+    predictions_train <- predict(pls_model, newdata = Z_train)
     # RMSE on the training data set
-    RMSE_train[i] <- min(pls_rmseCV$val)
+    RMSE_train[i] <- rmse(Y_train, predictions_train)
     # RMSE on the test data set
-    optimal_ncomp <- min(optimal_ncomp,(nrow(Z_test)-1))
-    predictions <- predict(pls_model, newdata = Z_test, ncomp = optimal_ncomp)
+    Z_test_dim <- min(ncol(Z_test), nrow(Z_test)) - 1
+    ncomp_adj2 <- min(Z_test_dim, ncomp)
+    # Making predictions on the test data
+    predictions <- predict(pls_model, newdata = Z_test, ncomp = ncomp_adj2)
     RMSE_test[i] <- rmse(predictions, Y_test)
     
   }
   
-  RMSE_train_result <- mean(RMSE_train)
-  RMSE_test_result <- mean(RMSE_test)
-  p_n_ratios[j] <- P/n
-  
+  RMSE_train_result[j] <- mean(RMSE_train)
+  RMSE_test_result[j] <- mean(RMSE_test)
+  p_n_ratios[j] <- (P+p)/n
   
 }
 
 # Plotting the relationship between P/n ratio and RMSE
-plot(p_n_ratios, RMSE_train_means, type = "b", col = "blue", xlab = "P/n ratio", ylab = "Mean RMSE", main = "P/n Ratio vs. RMSE")
-points(p_n_ratios, RMSE_test_means, type = "b", col = "red")
-legend("topright", legend = c("Training", "Test"), col = c("blue", "red"), lty = 1)
+# Plot for Training Data RMSE
+plot(p_n_ratios, RMSE_train_result, type = "b", col = "blue", xlab = "P/n ratio", ylab = "Mean RMSE", main = "P/n Ratio vs. RMSE (Training Data)")
+legend("topright", legend = c("Training RMSE"), col = c("blue"), lty = 1)
 
-
-
-
-
-
+# Plot for Test Data RMSE
+plot(p_n_ratios, RMSE_test_result, type = "b", col = "red", xlab = "P/n ratio", ylab = "Mean RMSE", main = "P/n Ratio vs. RMSE (Test Data)")
+legend("topright", legend = c("Test RMSE"), col = c("red"), lty = 1)
 
 
