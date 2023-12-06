@@ -22,8 +22,8 @@ n <- nrow(X)
 p <- ncol(X)
 ncomp <- 20
 
-S <- 100
-p_values <- seq(40, 3*p, by = 40)
+S <- 1000
+p_values <- seq(50, 3*p, by = 50)
 metrics_train <- matrix(0, ncol = 3, nrow = length(p_values))
 metrics_test <- matrix(0, ncol = 3, nrow = length(p_values))
 p_n_ratios <- numeric(length(p_values))
