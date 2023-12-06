@@ -1,6 +1,7 @@
 library(pls)
 load("/Users/jiaqizhu/Downloads/Real.2.rda")
 dim(Real.2)
+any(is.na(Real.2))
 
 S <- 50
 Y <- as.matrix(Real.2$y)

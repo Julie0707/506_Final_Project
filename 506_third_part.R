@@ -1,6 +1,8 @@
 library(pls)
 load("/Users/jiaqizhu/Downloads/Real.2.rda")
 dim(Real.2)
+any(is.na(Real.2))
+
 Y <- as.matrix(Real.2$y)
 X <- as.matrix(Real.2[,-1])
 
@@ -42,3 +44,23 @@ for (j in seq_along(p_values)) {
   # Bind the temporary data frame to the main results data frame
   results_df <- rbind(results_df, temp_df)
 }
+
+library(dplyr)
+
+overall_frequency <- results_df %>%
+  count(variable_name) %>%
+  arrange(desc(n))
+
+# View the table
+print(overall_frequency)
+
+library(tidyr)
+combined_table <- results_df %>%
+  group_by(variable_name) %>%
+  summarise(
+    frequency = n(),
+    p_values = list(unique(p_value))
+  )
+
+# View the table
+print(combined_table)
